@@ -17,7 +17,7 @@ mkdir -p logs
 
 # 安装必要的依赖
 apt-get update
-apt-get install -y nodejs npm software-properties-common git python3-venv python3-pip
+apt-get install -y nodejs npm software-properties-common git python3-venv python3-pip python3-full
 
 # 创建虚拟环境
 python3 -m venv venv
@@ -27,8 +27,11 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install requests pysui
 
-# 克隆并设置 sui_meta_miner
-git clone https://github.com/suidouble/sui_meta_miner.git
+# 检查 sui_meta_miner 目录是否存在
+if [ ! -d "sui_meta_miner" ]; then
+    git clone https://github.com/suidouble/sui_meta_miner.git
+fi
+
 cd sui_meta_miner
 npm install
 SUI_META_MINER_DIR=$(pwd)
@@ -63,7 +66,7 @@ while true; do
     echo "挖矿进程已停止"
 
     # 运行 mc.py
-    python3 "$INITIAL_DIR/mc.py" "$WALLET_ADDRESS" > "$INITIAL_DIR/logs/mc_$(date +%Y%m%d_%H%M%S).log" 2>&1
+    "$INITIAL_DIR/venv/bin/python3" "$INITIAL_DIR/mc.py" "$WALLET_ADDRESS" > "$INITIAL_DIR/logs/mc_$(date +%Y%m%d_%H%M%S).log" 2>&1
     echo "mc.py 已执行完毕，日志保存在 logs/mc_$(date +%Y%m%d_%H%M%S).log"
 
     # 短暂暂停以确保所有进程都已正确结束
