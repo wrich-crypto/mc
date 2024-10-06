@@ -1,14 +1,13 @@
 #!/bin/bash
 
 # 检查是否提供了必要的参数
-if [ "$#" -ne 3 ]; then
-    echo "使用方法: $0 <密钥短语> <钱包地址> <工作线程数>"
+if [ "$#" -ne 2 ]; then
+    echo "使用方法: $0 <密钥短语/私钥> <工作线程数>"
     exit 1
 fi
 
 SECRET_PHRASE="$1"
-WALLET_ADDRESS="$2"
-WORKERS_COUNT="$3"
+WORKERS_COUNT="$2"
 
 # 记录初始目录
 INITIAL_DIR=$(pwd)
@@ -75,7 +74,7 @@ while true; do
     echo "挖矿进程已停止"
 
     # 运行 mc.py
-    "$INITIAL_DIR/venv/bin/python3" "$INITIAL_DIR/mc.py" "$WALLET_ADDRESS" > "$INITIAL_DIR/logs/mc_$(date +%Y%m%d_%H%M%S).log" 2>&1
+    "$INITIAL_DIR/venv/bin/python3" "$INITIAL_DIR/mc.py" "$SECRET_PHRASE" > "$INITIAL_DIR/logs/mc_$(date +%Y%m%d_%H%M%S).log" 2>&1
     echo "mc.py 已执行完毕，日志保存在 logs/mc_$(date +%Y%m%d_%H%M%S).log"
 
     # 短暂暂停以确保所有进程都已正确结束
