@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # 检查是否提供了必要的参数
-if [ "$#" -ne 2 ]; then
-    echo "使用方法: $0 <密钥短语> <钱包地址>"
+if [ "$#" -ne 3 ]; then
+    echo "使用方法: $0 <密钥短语> <钱包地址> <工作线程数>"
     exit 1
 fi
 
 SECRET_PHRASE="$1"
 WALLET_ADDRESS="$2"
+WORKERS_COUNT="$3"
 
 # 记录初始目录
 INITIAL_DIR=$(pwd)
@@ -17,7 +18,11 @@ mkdir -p logs
 
 # 安装必要的依赖
 apt-get update
-apt-get install -y nodejs npm software-properties-common git python3-venv python3-pip python3-full
+apt-get install -y nodejs npm software-properties-common git python3-venv python3-pip python3-full curl
+
+# 安装 Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source $HOME/.cargo/env
 
 # 创建虚拟环境
 python3 -m venv venv
@@ -27,12 +32,16 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install requests pysui
 
-# 检查 sui_meta_miner 目录是否存在
+# 克隆并修改 sui_meta_miner
 if [ ! -d "sui_meta_miner" ]; then
     git clone https://github.com/suidouble/sui_meta_miner.git
 fi
 
 cd sui_meta_miner
+
+# 修改 NonceFinder.js 文件
+sed -i "s/this._workersCount = 8/this._workersCount = $WORKERS_COUNT/" includes/NonceFinder.js
+
 npm install
 SUI_META_MINER_DIR=$(pwd)
 
