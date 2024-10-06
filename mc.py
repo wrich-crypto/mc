@@ -83,10 +83,12 @@ def _merge_coin(client, merge_to: str, merge_from_list: List[str]):
     except Exception as e:
         print(f"执行合并交易时发生错误: {e}")
 
-def main(address):
-    print(f"开始处理地址: {address}")
-    cfg = SuiConfig.user_config(rpc_url=url)
+def main(private_key):
+    cfg = SuiConfig.user_config(prv_keys=[private_key], rpc_url=url)
     client = SuiClient(cfg)
+
+    address = cfg.active_address.address
+    print(f"开始处理地址: {address}")
 
     fomo_balance = int(get_fomo_balance(address))
     print(f'地址的 FOMO 余额: {fomo_balance}')
@@ -96,8 +98,8 @@ def main(address):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print("Usage: python fomo.py <wallet_address>")
+        print("Usage: python mc.py <private_key>")
         sys.exit(1)
     
-    wallet_address = sys.argv[1]
-    main(wallet_address)
+    private_key = sys.argv[1]
+    main(private_key)
