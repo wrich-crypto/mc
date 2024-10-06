@@ -12,16 +12,20 @@ WALLET_ADDRESS="$2"
 # 记录初始目录
 INITIAL_DIR=$(pwd)
 
+# 创建日志目录
+mkdir -p logs
+
 # 安装必要的依赖
 apt-get update
-apt-get install -y nodejs npm software-properties-common git
+apt-get install -y nodejs npm software-properties-common git python3-venv python3-pip
 
-# 安装 pip
-apt-get install -y python3-pip
+# 创建虚拟环境
+python3 -m venv venv
+source venv/bin/activate
 
 # 更新 pip 并安装依赖
-python3 -m pip install --upgrade pip
-python3 -m pip install requests pysui
+pip install --upgrade pip
+pip install requests pysui
 
 # 克隆并设置 sui_meta_miner
 git clone https://github.com/suidouble/sui_meta_miner.git
@@ -32,7 +36,7 @@ SUI_META_MINER_DIR=$(pwd)
 # 定义一个函数来启动挖矿进程
 start_mining() {
     cd "$SUI_META_MINER_DIR"
-    nohup node mine.js --fomo --chain=mainnet --phrase="$SECRET_PHRASE" > mining.log 2>&1 &
+    nohup node mine.js --fomo --chain=mainnet --phrase="$SECRET_PHRASE" > "$INITIAL_DIR/logs/mining_$(date +%Y%m%d_%H%M%S).log" 2>&1 &
     echo $! > mining.pid
     cd "$INITIAL_DIR"
 }
@@ -49,7 +53,7 @@ stop_mining() {
 while true; do
     # 启动挖矿
     start_mining
-    echo "挖矿进程已启动"
+    echo "挖矿进程已启动，日志保存在 logs/mining_$(date +%Y%m%d_%H%M%S).log"
 
     # 等待一小时
     sleep 3600
@@ -58,10 +62,13 @@ while true; do
     stop_mining
     echo "挖矿进程已停止"
 
-    # 运行 fomo.py
-    python3 mc.py "$WALLET_ADDRESS"
-    echo "mc.py 已执行完毕"
+    # 运行 mc.py
+    python3 "$INITIAL_DIR/mc.py" "$WALLET_ADDRESS" > "$INITIAL_DIR/logs/mc_$(date +%Y%m%d_%H%M%S).log" 2>&1
+    echo "mc.py 已执行完毕，日志保存在 logs/mc_$(date +%Y%m%d_%H%M%S).log"
 
     # 短暂暂停以确保所有进程都已正确结束
     sleep 5
 done
+
+# 退出虚拟环境
+deactivate
